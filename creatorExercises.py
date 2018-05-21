@@ -11,17 +11,16 @@ import pyprog
 
 class CreatorExercises(object):
     def __init__(self):
-        prog = pyprog.ProgressBar(" ", " ", total=70, bar_length=26, complete_symbol="=", not_complete_symbol=" ",
+        prog = pyprog.ProgressBar(" ", " ", total=60, bar_length=26, complete_symbol="=", not_complete_symbol=" ",
                                   wrap_bar_prefix=" [", wrap_bar_suffix="] ", progress_explain="",
                                   progress_loc=pyprog.ProgressBar.PROGRESS_LOC_END)
-        # Update Progress Bar
-        print("Загрузка:  ")
+        prog.set_prefix("Загрузка:  ")
         prog.update()
-        progress_bar(prog)
+        progress_bar(prog, " Тегирование текста...")
         self.__tagged_words_dictionary = nltk.corpus.brown.tagged_words(tagset='universal')
-        progress_bar(prog)
+        progress_bar(prog, " Загрузка предложений...")
         self.__sents = nltk.corpus.brown.sents()
-        progress_bar(prog)
+        progress_bar(prog, " Отбор существительных...")
         # db_texts = db.Database().texts.find()
         # stt = []
         # for t in db_texts:
@@ -36,19 +35,17 @@ class CreatorExercises(object):
         # self.__tagged_words_dictionary += stt
         # print(len(self.__tagged_words_dictionary))
         self.__noun_dictionary = select(self.__tagged_words_dictionary, "NOUN")
-        progress_bar(prog)
+        progress_bar(prog, " Стемминг слов...")
         self.__stemmer = nltk.stem.porter.PorterStemmer()
-        progress_bar(prog)
         self.__stem_dictionary = [(w[0], self.__stemmer.stem(w[0])) for w in self.__tagged_words_dictionary]
-        progress_bar(prog)
+        progress_bar(prog, " Кодирование слов методом Soundex...")
         self.__soundex_dictionary = [(w[0], Soundex().create(w[0])) for w in self.__tagged_words_dictionary]
-        progress_bar(prog)
+        progress_bar(prog, " Успешная загрузка.")
 
         # self.__verb_dictionary = select_by_tag(self.__tagged_words_dictionary, "VERB")
         # self.__adj_dictionary = select_by_tag(self.__tagged_words_dictionary, "ADJ")
         # self.__adv_dictionary = select_by_tag(self.__tagged_words_dictionary, "ADV")
         # self.__pron_dictionary = select_by_tag(self.__tagged_words_dictionary, "PRON")
-        print("Успешная загрузка")
         prog.end()
 
     def create(self, chat_id, tag):
@@ -56,7 +53,7 @@ class CreatorExercises(object):
         if len(words) < 4:
             words = random.choice(self.__sents)
         word = '1'
-        while not word.isalpha() or not word.islower():
+        while not (type(word) is str and word.isalpha() and word.islower()):
             word = select_word(words, tag)
         sent_ex = words
         if word:
@@ -126,10 +123,11 @@ def select(words, object):
 progress_stat = 0
 
 
-def progress_bar(prog):
+def progress_bar(prog, text=""):
     global progress_stat
     for i in range(10):
         time.sleep(.1)
         progress_stat += 1
         prog.set_stat(progress_stat)
+        prog.set_suffix(text)
         prog.update()
