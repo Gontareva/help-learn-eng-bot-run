@@ -46,9 +46,11 @@ def sent_exercise(message):
         res = bot.send_message(chat_id=message.chat.id, text=a, reply_markup=keyboard, parse_mode='Markdown')
         new_exercise.message_id = res.message_id
         new_exercise.save()
-        ex = Users.objects(chat_id=message.chat.id).update(push__exercises=new_exercise)
+        new_exercise.reload()
 
-        print_info(message, (ex.sentense))
+        ex = Users.objects(chat_id=message.chat.id)
+
+        print_info(message, new_exercise.sentense)
 
         # else:
         #     bot.send_message(chat_id=message.chat.id, text="Напиши мне позже;)")
@@ -87,7 +89,7 @@ def do_text(exercise):
 
 def create_user(message):
     if not Users.objects(chat_id=message.chat.id).first():
-        Users(chat_id=message.chat.id, name=message.from_user.first_name+" "+message.from_user.last_name).save()
+        Users(chat_id=message.chat.id, name=message.from_user.first_name + " " + message.from_user.last_name).save()
 
 
 def print_info(message, text):
@@ -100,9 +102,10 @@ def inline(callback):
     try:
         exercise = Exercises.objects(message_id=callback.message.message_id,
                                      chat_id=callback.message.chat.id).first()
+        user = Users.objects(chat_id=callback.message.chat.id).first()
         if type(exercise) is Exercises:
             if callback.data == "#delete":
-                if exercise.user_response!="_____":
+                if exercise.user_response != "_____":
                     exercise.update(set__user_response="_____")
 
                     bot.edit_message_text(chat_id=callback.message.chat.id,
@@ -110,12 +113,12 @@ def inline(callback):
                                           text=do_text(exercise),
                                           parse_mode='Markdown')
                     keyboard = do_keyboard(exercise)
-                    bot.edit_message_reply_markup(chat_id=callback.message.chat.id, message_id=callback.message.message_id,
+                    bot.edit_message_reply_markup(chat_id=callback.message.chat.id,
+                                                  message_id=callback.message.message_id,
                                                   reply_markup=keyboard)
                 print_info(callback.message, callback.data)
             elif callback.data.startswith("#check"):
                 if not exercise.check:
-                    user = Users.objects(chat_id=callback.message.chat.id).first()
                     text = "*Ответ: *" + exercise.sentence.replace("_____",
                                                                    exercise.user_response) + "\n*Проверка:* " \
                            + exercise.sentence.replace("_____", exercise.answer) + "\n*Результат:* "
@@ -141,7 +144,7 @@ def inline(callback):
                         right = False
 
                     exercise.update(set__right=right, set__check=True)
-                    Users.objects(chat_id=callback.message.chat.id).update_one(set__level=level, set__progress=progress)
+                    user.update(set__level=level, set__progress=progress)
                     text += "\n*Рейтинг:* " + str(int(progress)) + "%\n*Уровень*: " + str(level)
 
                     bot.edit_message_text(chat_id=callback.message.chat.id,
@@ -149,13 +152,17 @@ def inline(callback):
                                           text=text,
                                           parse_mode='Markdown')
                     keyboard = do_keyboard_next()
-                    bot.edit_message_reply_markup(chat_id=callback.message.chat.id, message_id=callback.message.message_id,
+                    bot.edit_message_reply_markup(chat_id=callback.message.chat.id,
+                                                  message_id=callback.message.message_id,
                                                   reply_markup=keyboard)
                     print_info(callback.message, "#check    " + str(right))
             elif callback.data == "#next":
                 if exercise.check:
-                    bot.edit_message_reply_markup(chat_id=callback.message.chat.id, message_id=callback.message.message_id,
+                    bot.edit_message_reply_markup(chat_id=callback.message.chat.id,
+                                                  message_id=callback.message.message_id,
                                                   reply_markup=[])
+                    if exercise.right:
+                        exercise.delete()
                     sent_exercise(callback.message)
                 print_info(callback.message, callback.data)
             elif callback.data == "#settings":
