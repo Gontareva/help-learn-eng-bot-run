@@ -50,7 +50,9 @@ class CreatorExercises(object):
 
     def create(self, chat_id, tag):
         words = []
-        if len(words) < 4:
+
+        # Cлова с нужным тегом в предложении может и не быть??????????????
+        while len(words) < 4:
             words = random.choice(self.__sents)
         word = '1'
         while not (type(word) is str and word.isalpha() and word.islower()):

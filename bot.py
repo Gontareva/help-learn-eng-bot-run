@@ -22,19 +22,13 @@ def start(message):
             datetime.datetime.fromtimestamp(message.date).strftime('%Y-%m-%d %H:%M:%S')) + " ->>>>> " + str(
             message.from_user.id) + " ->>>>> " +
                          str(message.from_user.first_name) + str(message.from_user.last_name))
-        create_user(message)
-
-        sent_exercise(message)
+        if create_user(message):
+            sent_exercise(message)
     except Exception as e:
         print(e)
 
 
-@bot.message_handler(content_types=['text'])
-def text(message):
-    bot.send_message(message.chat.id, "Общайся со мной кнопками.")
-    print_info(message, "message:   " + message.text)
-
-
+@bot.message_handler(commands=['restart'])
 def sent_exercise(message):
     try:
         # if message.chat.id == 259603599:
@@ -46,11 +40,11 @@ def sent_exercise(message):
         res = bot.send_message(chat_id=message.chat.id, text=a, reply_markup=keyboard, parse_mode='Markdown')
         new_exercise.message_id = res.message_id
         new_exercise.save()
-        new_exercise.reload()
+        # new_exercise.reload()
 
         ex = Users.objects(chat_id=message.chat.id)
 
-        print_info(message, new_exercise.sentense)
+        print_info(message, Exercises.objects(chat_id=message.chat.id, message_id=message.message_id).first().sentence)
 
         # else:
         #     bot.send_message(chat_id=message.chat.id, text="Напиши мне позже;)")
@@ -61,6 +55,12 @@ def sent_exercise(message):
         #                             + " ->>>>> " + str(message.text))
     except Exception as e:
         print(e)
+
+
+@bot.message_handler(content_types=['text'])
+def text(message):
+    bot.send_message(message.chat.id, "Общайся со мной кнопками.")
+    print_info(message, "message:   " + message.text)
 
 
 def do_keyboard(exercise):
@@ -84,12 +84,14 @@ def do_keyboard_next():
 
 
 def do_text(exercise):
-    return '*Вставьте пропущенное в предложении слово:*\n\n' + exercise.sentence
+    return '*Вставьте пропущенное в предложении слово:*\n' + exercise.sentence
 
 
 def create_user(message):
     if not Users.objects(chat_id=message.chat.id).first():
         Users(chat_id=message.chat.id, name=message.from_user.first_name + " " + message.from_user.last_name).save()
+        return True
+    return False
 
 
 def print_info(message, text):
@@ -172,13 +174,12 @@ def inline(callback):
                 exercise = Exercises.objects(message_id=callback.message.message_id,
                                              chat_id=callback.message.chat.id).first()
                 exercise.update(set__user_response=callback.data)
+                keyboard = do_keyboard(exercise)
                 bot.edit_message_text(chat_id=callback.message.chat.id,
                                       message_id=callback.message.message_id,
                                       text=do_text(exercise).replace("_____", callback.data),
-                                      parse_mode='Markdown')
-                keyboard = do_keyboard(exercise)
-                bot.edit_message_reply_markup(chat_id=callback.message.chat.id, message_id=callback.message.message_id,
-                                              reply_markup=keyboard)
+                                      parse_mode='Markdown', reply_markup=keyboard)
+
                 print_info(callback.message, "answer:       " + callback.data)
     except Exception as e:
         print(e)
