@@ -6,10 +6,7 @@ import time
 import pyprog
 
 
-# import db
-
-
-class CreatorExercises(object):
+class ExerciseGenerator(object):
     def __init__(self):
         prog = pyprog.ProgressBar(" ", " ", total=60, bar_length=26, complete_symbol="=", not_complete_symbol=" ",
                                   wrap_bar_prefix=" [", wrap_bar_suffix="] ", progress_explain="",
@@ -48,12 +45,16 @@ class CreatorExercises(object):
         # self.__pron_dictionary = select_by_tag(self.__tagged_words_dictionary, "PRON")
         prog.end()
 
-    def create(self, chat_id, tag):
+    def create(self, chat_id, level, tag):
         words = []
 
-        # Cлова с нужным тегом в предложении может и не быть??????????????
+        #Cлова с нужным тегом в предложении может и не быть??????????????
+        count_random = 0
         while len(words) < 4:
             words = random.choice(self.__sents)
+            count_random += 1
+            if count_random > len(self.__sents):
+                return None
         word = '1'
         while not (type(word) is str and word.isalpha() and word.islower()):
             word = select_word(words, tag)
@@ -64,21 +65,21 @@ class CreatorExercises(object):
             sent_ex.insert(i, "*_____*")
             sent = " ".join(sent_ex)
             answer_options = []
-            i = 1
             answer_options.append(word)
-            while len(sorted(set(answer_options))) < 4:
+            count_answers = level * 2 + 2
+            while len(sorted(set(answer_options))) < count_answers:
                 r = random.choice([1, 2, 3])
                 if r == 1:
                     w = random.choice(self.__noun_dictionary)
                 elif r == 2:
-                    w = random.choice(select(self.__soundex_dictionary, Soundex().create(word)))
+                    w = random.choice(select(self.__soundex_dictionary, Soundex().encode(word)))
                 else:
                     w = random.choice(select(self.__stem_dictionary, self.__stemmer.stem(word)))
-                answer_options.append(w)
+                answer_options.append(w.lower())
 
             answer_options = sorted(set(answer_options))
             random.shuffle(answer_options)
-            ex = Exercises(chat_id=chat_id, sentence=sent, answer=word, tag=tag,
+            ex = Exercises(chat_id=chat_id, sentence=sent, answer=word, tag=tag, level=level,
                            answer_options=answer_options)
             return ex
         else:
@@ -86,26 +87,26 @@ class CreatorExercises(object):
 
         # генерирование вариантов ответа для теста
 
-    def __create_answer_options(self):
-        all_tagged_words = nltk.corpus.brown.tagged_words(tagset='universal')
-        tagged_words = select(all_tagged_words, self.tag)
-        length = len(tagged_words)
-        tagged_words.append(self.answer)
-
-        index = tagged_words.index(self.answer)
-        sorted_words = nltk.FreqDist(tagged_words).most_common(length)
-
-        if index != length:
-            ind = [w[0] for w in sorted_words].index(self.answer)
-            mod = length // 3
-            level = ind // mod + 1
-        else:
-            level = 2
-        most_common_words = sorted_words[:level * 100]
-        words = [w[0] for w in most_common_words]
-
-        self.answerOptions = random.sample(words, 3)
-        self.level = level
+    # def __create_answer_options(self):
+    #     all_tagged_words = nltk.corpus.brown.tagged_words(tagset='universal')
+    #     tagged_words = select(all_tagged_words, self.tag)
+    #     length = len(tagged_words)
+    #     tagged_words.append(self.answer)
+    #
+    #     index = tagged_words.index(self.answer)
+    #     sorted_words = nltk.FreqDist(tagged_words).most_common(length)
+    #
+    #     if index != length:
+    #         ind = [w[0] for w in sorted_words].index(self.answer)
+    #         mod = length // 3
+    #         level = ind // mod + 1
+    #     else:
+    #         level = 2
+    #     most_common_words = sorted_words[:level * 100]
+    #     words = [w[0] for w in most_common_words]
+    #
+    #     self.answerOptions = random.sample(words, 3)
+    #     self.level = level
 
 
 def select_word(tokens, tag):

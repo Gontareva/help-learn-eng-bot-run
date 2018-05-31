@@ -20,8 +20,3 @@ class Exercises(Document):
     def add_user_response(self, response):
         self.user_response = response
         return self
-
-    # def to_json(self):
-    #     dict_exercise = {"sentence": self.sentence, "answer" : self.answer, "level":self.level, "tag":self.tag,
-    #                      "answer_options": self.answer_options, "user_response":self.user_response}
-    #     return json.dumps(dict_exercise)
