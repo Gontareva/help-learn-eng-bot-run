@@ -1,4 +1,4 @@
-import bot
+import telegrambot
 
 if __name__ == "__main__":
-    bot.start()
+    telegrambot.start()

@@ -47,11 +47,15 @@ bot = telebot.TeleBot(config.token)
 #     bot.send_photo(259603599, open('qqq.jpg', 'rb'))
 
 if __name__ == '__main__':
-    print(sys.version)
-    send_progress()
-    try:
-        pass
-        print(bot.get_me())
-        bot.polling(none_stop=True)
-    except Exception as e:
-        print(e)
+    print("aaa1")
+    if 10:
+        print(sys.version)
+    # send_progress()
+    # try:
+    #     pass
+    #     print(bot.get_me())
+    #     bot.polling(none_stop=True)
+    # except Exception as e:
+    #     print(e)
+
+    print("aaa")

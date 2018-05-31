@@ -1,136 +1,95 @@
 import nltk
-from exercises import Exercises
-from soundex import Soundex
-import random
-import time
-import pyprog
+from progressBar import *
+from exercise import *
+from tagMapping import *
+from answer import *
+from singleton import *
 
 
-class ExerciseGenerator(object):
+class ExerciseGenerator(Singleton, object):
     def __init__(self):
-        prog = pyprog.ProgressBar(" ", " ", total=60, bar_length=26, complete_symbol="=", not_complete_symbol=" ",
-                                  wrap_bar_prefix=" [", wrap_bar_suffix="] ", progress_explain="",
-                                  progress_loc=pyprog.ProgressBar.PROGRESS_LOC_END)
-        prog.set_prefix("Загрузка:  ")
-        prog.update()
-        progress_bar(prog, " Тегирование текста...")
-        self.__tagged_words_dictionary = nltk.corpus.brown.tagged_words(tagset='universal')
-        progress_bar(prog, " Загрузка предложений...")
-        self.__sents = nltk.corpus.brown.sents()
-        progress_bar(prog, " Отбор существительных...")
-        # db_texts = db.Database().texts.find()
-        # stt = []
-        # for t in db_texts:
-        #     print(t)
-        #     ss = nltk.tokenize.sent_tokenize(t["text"])
-        #     print(ss)
-        #     st = []
-        #     for w in ss:
-        #         st.extend(nltk.tokenize.word_tokenize(w))
-        #     stt.extend( nltk.pos_tag(st, tagset="universal"))
-        #     print(stt)
-        # self.__tagged_words_dictionary += stt
-        # print(len(self.__tagged_words_dictionary))
-        self.__noun_dictionary = select(self.__tagged_words_dictionary, "NOUN")
-        progress_bar(prog, " Стемминг слов...")
-        self.__stemmer = nltk.stem.porter.PorterStemmer()
-        self.__stem_dictionary = [(w[0], self.__stemmer.stem(w[0])) for w in self.__tagged_words_dictionary]
-        progress_bar(prog, " Кодирование слов методом Soundex...")
-        self.__soundex_dictionary = [(w[0], Soundex().create(w[0])) for w in self.__tagged_words_dictionary]
-        progress_bar(prog, " Успешная загрузка.")
+        self.__tag_mapping = TagMapping()
 
-        # self.__verb_dictionary = select_by_tag(self.__tagged_words_dictionary, "VERB")
-        # self.__adj_dictionary = select_by_tag(self.__tagged_words_dictionary, "ADJ")
-        # self.__adv_dictionary = select_by_tag(self.__tagged_words_dictionary, "ADV")
-        # self.__pron_dictionary = select_by_tag(self.__tagged_words_dictionary, "PRON")
+        prog = ProgressBar(total=60, bar_length=26, complete_symbol="=")
+        prog.set_prefix("Загрузка:  ")
+
+        prog.next(" Тегирование текста...")
+        self.__tagged_words_dictionary = nltk.corpus.brown.tagged_words()
+
+        prog.next(" Загрузка предложений...")
+        self.__sents = nltk.corpus.brown.sents()
+
+        prog.next(" Формирование словаря...")
+        self.__dictionary = {}
+        self.__load_words_by_part_of_speech()
+
+        prog.next(" Стемминг слов...")
+        self.__stemmer = nltk.stem.porter.PorterStemmer()
+        self.__stem_dictionary = [(word, self.__stemmer.stem(word)) for word, _ in self.__tagged_words_dictionary]
+
+        prog.next(" Кодирование слов методом Soundex...")
+        self.__soundex_dictionary = [(word, Soundex().encode(word)) for word, _ in self.__tagged_words_dictionary]
+
+        prog.next(" Успешная загрузка.")
         prog.end()
 
-    def create(self, chat_id, level, tag):
-        words = []
+    # генерирование задания
+    def generate(self, chat_id, level, part_of_speech_):
+        part_of_speech = part_of_speech_.get()
+        list_of_words = self.__find_sentence(part_of_speech_, 4)
+        word, tag = self.__select_word(list_of_words, part_of_speech_)
+        sent = " ".join(list_of_words).replace(word, "*_____*", 1)
+        count_answers = level * 2 + 2
+        answer_options = self.__create_answer_options(word=word, part_of_speech=part_of_speech_, tag=Tag(tag),
+                                                      count=count_answers)
+        ex = Exercise(chat_id=chat_id, sentence=sent, answer=word, part_of_speech=part_of_speech, level=level,
+                      answer_options=answer_options)
+        return ex
 
-        #Cлова с нужным тегом в предложении может и не быть??????????????
-        count_random = 0
-        while len(words) < 4:
-            words = random.choice(self.__sents)
-            count_random += 1
-            if count_random > len(self.__sents):
-                return None
-        word = '1'
-        while not (type(word) is str and word.isalpha() and word.islower()):
-            word = select_word(words, tag)
-        sent_ex = words
-        if word:
-            i = sent_ex.index(word)
-            sent_ex.pop(i)
-            sent_ex.insert(i, "*_____*")
-            sent = " ".join(sent_ex)
-            answer_options = []
-            answer_options.append(word)
-            count_answers = level * 2 + 2
-            while len(sorted(set(answer_options))) < count_answers:
-                r = random.choice([1, 2, 3])
-                if r == 1:
-                    w = random.choice(self.__noun_dictionary)
-                elif r == 2:
-                    w = random.choice(select(self.__soundex_dictionary, Soundex().encode(word)))
-                else:
-                    w = random.choice(select(self.__stem_dictionary, self.__stemmer.stem(word)))
-                answer_options.append(w.lower())
+    # генерирование вариантов ответа для теста
+    def __create_answer_options(self, word, part_of_speech, tag, count):
+        list_of_answers = [Answer(word)]
+        answer = Answer()
+        while len(list_of_answers) < count:
+            r = random.choice([1, 2, 3])
+            if r == 1:
+                answer = AnswerSameTag().create(part_of_speech, tag, self.__dictionary)
+            elif r == 2:
+                answer = AnswerHomophone().create(word, self.__soundex_dictionary)
+            else:
+                answer = AnswerWordForm().create(word, self.__stem_dictionary, self.__stemmer)
+            if not list_of_answers.count(answer):
+                list_of_answers.append(answer)
 
-            answer_options = sorted(set(answer_options))
-            random.shuffle(answer_options)
-            ex = Exercises(chat_id=chat_id, sentence=sent, answer=word, tag=tag, level=level,
-                           answer_options=answer_options)
-            return ex
-        else:
-            return None
+        random.shuffle(list_of_answers)
+        return [answer.get() for answer in list_of_answers]
 
-        # генерирование вариантов ответа для теста
+    # поиск подходящего предложения
+    def __find_sentence(self, part_of_speech, min_length):
+        sent = []
+        tagged_sent = nltk.pos_tag(sent)
+        while len(sent) < min_length and not len(self.__select_by_part_of_speech(tagged_sent, part_of_speech)):
+            sent = random.choice(self.__sents)
+        return sent
 
-    # def __create_answer_options(self):
-    #     all_tagged_words = nltk.corpus.brown.tagged_words(tagset='universal')
-    #     tagged_words = select(all_tagged_words, self.tag)
-    #     length = len(tagged_words)
-    #     tagged_words.append(self.answer)
-    #
-    #     index = tagged_words.index(self.answer)
-    #     sorted_words = nltk.FreqDist(tagged_words).most_common(length)
-    #
-    #     if index != length:
-    #         ind = [w[0] for w in sorted_words].index(self.answer)
-    #         mod = length // 3
-    #         level = ind // mod + 1
-    #     else:
-    #         level = 2
-    #     most_common_words = sorted_words[:level * 100]
-    #     words = [w[0] for w in most_common_words]
-    #
-    #     self.answerOptions = random.sample(words, 3)
-    #     self.level = level
+    # выбор слов части речи part_of_speech
+    def __select_by_part_of_speech(self, list, part_of_speech):
+        tags = self.__tag_mapping.tags(part_of_speech.get())
+        return [(word, tag) for word, tag in list if tags.count(tag) != 0]
 
+    # формирование словаря - распределение слов по частям речи и тегам
+    def __load_words_by_part_of_speech(self):
+        for part_of_speech in self.__tag_mapping.parts_of_speech():
+            self.__dictionary[part_of_speech] = {}
+            for tag in self.__tag_mapping.tags(part_of_speech):
+                self.__dictionary[part_of_speech][tag] = []
+        for word, tag in self.__tagged_words_dictionary:
+            part_of_speech = self.__tag_mapping.part_of_speech(tag)
+            if part_of_speech:
+                self.__dictionary[part_of_speech][tag].append(word)
 
-def select_word(tokens, tag):
-    # tokens = nltk.tokenize.word_tokenize(sentence)
-    tagged_words = nltk.pos_tag(tokens, tagset='universal')
-    words = select(tagged_words, tag)
-    if words:
-        return random.choice(words)
-    else:
-        return None
-
-
-def select(words, object):
-    return [w[0] for w in words if w[1] == object]
-
-
-progress_stat = 0
-
-
-def progress_bar(prog, text=""):
-    global progress_stat
-    for i in range(10):
-        time.sleep(.1)
-        progress_stat += 1
-        prog.set_stat(progress_stat)
-        prog.set_suffix(text)
-        prog.update()
+    # выбор слова из предложения как ответ в составляемом задании
+    def __select_word(self, sentence, part_of_speech):
+        tagged_words = nltk.pos_tag(sentence)
+        word_tag = self.__select_by_part_of_speech(tagged_words, part_of_speech)
+        return random.choice(word_tag)
