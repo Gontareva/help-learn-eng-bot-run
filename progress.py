@@ -1,5 +1,6 @@
 from GChartWrapper import *
 import sys
+import nltk
 
 
 def send_progress(user=None):
@@ -16,10 +17,10 @@ def send_progress(user=None):
     #     [list(range(0, 14)), [0, 1.0, 2.0, 3.0, 2.0, 3.0, 4.0, 5.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0], list(range(13, 19)),
     #      [9.0, 10.0, 11.0, 10.0, 11.0, 10.0]])
     print([a[:14], a[-6:]])
-    G =LineXY([list(range(0, 14)),a[:14], list(range(13, 19)),a[-6:]])
+    G = LineXY([list(range(0, 14)), a[:14], list(range(13, 19)), a[-6:]])
     G.color("blue", "8B0000")
     G.size(600, 300)
-    G.scale(0, len(a)-1, min(a), max(a), 0, len(a)-1, min(a), max(a))
+    G.scale(0, len(a) - 1, min(a), max(a), 0, len(a) - 1, min(a), max(a))
     # G.scale(min(a), max(a))
     # G.scale(min(a), max(a))
     G.grid(10.0, 10.0, 1, 10)
@@ -28,7 +29,7 @@ def send_progress(user=None):
     # max_value=11
     # G.axes.label(0, last_value)
     # G.axes.position(0, int(100 * last_value / max_value))  # 0 to 100
-    G.axes.range(0, min(a)-1, max(a))
+    G.axes.range(0, min(a) - 1, max(a))
     # G.title("I" + " rating fot the last 100 exercises")
     file = str(259603599)
     G.save(file)
@@ -40,16 +41,20 @@ def send_progress(user=None):
 import config
 import telebot
 
-bot = telebot.TeleBot(config.token)
+# bot = telebot.TeleBot(config.token)
 #
 # @bot.message_handler(content_types=['text'])
 # def text(message):
 #     bot.send_photo(259603599, open('qqq.jpg', 'rb'))
 
 if __name__ == '__main__':
-    print("aaa1")
-    if 10:
-        print(sys.version)
+    print(nltk.corpus.brown.tagged_sents())
+    print(nltk.stem.porter.PorterStemmer().stem("book"))
+    print(nltk.stem.porter.PorterStemmer().stem("booking"))
+
+    # print("aaa1")
+    # if 10:
+    #     print(sys.version)
     # send_progress()
     # try:
     #     pass

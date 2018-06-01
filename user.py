@@ -1,4 +1,5 @@
 from mongoengine import *
+from partOfSpeech import *
 
 
 class User(Document):
@@ -12,3 +13,6 @@ class User(Document):
     count_for_progress = IntField(required=True, min_value=0, default=0)
     count_exercises = IntField(required=True, min_value=0, default=0)
     history_progress = ListField(required=True, default=[0])
+
+    def get_parts_of_speech(self):
+        return [PartOfSpeech(word) for word in self.parts_of_speech]

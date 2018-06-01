@@ -29,7 +29,16 @@ class Soundex(object):
             return text.upper()
         return ''.join([c.upper() for c in text if c.isalpha()])
 
+    def encode_list(self, words):
+        dictionary = {}
+        for word in words:
+            code = self.encode(word)
+            if dictionary.get(code):
+                dictionary[code].append(word)
+            else:
+                dictionary[code] = [word]
 
+        return dictionary
 
 #
 # a = Soundex()

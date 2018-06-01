@@ -9,9 +9,13 @@ from exercise import Exercise
 from db import Database
 from chartGenerator import *
 from partOfSpeech import *
+from tagMapping import *
+from stemmer import *
+from soundex import *
 
 bot = telebot.TeleBot(config.token)
-generator = ExerciseGenerator()
+tag_mapping = TagMapping()
+generator = ExerciseGenerator(tag_mapping, Stemmer(), Soundex())
 db = Database()
 
 
@@ -52,7 +56,7 @@ def set_settings(message):
 def create_and_send_exercise(message):
     try:
         user = create_user(message)
-        new_exercise = generator.generate(message.chat.id, user.level, PartOfSpeech("NOUN"))
+        new_exercise = generator.generate(message.chat.id, user.level, user.get_parts_of_speech())
         res = send_exercise(new_exercise)
         new_exercise.message_id = res.message_id
         new_exercise.save()

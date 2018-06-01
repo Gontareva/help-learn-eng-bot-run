@@ -20,6 +20,20 @@ class TagMapping(Singleton, object):
                 return part_of_speech
         return None
 
+    # формирование словаря - распределение слов по частям речи и тегам
+    def mapping_words(self, tagged_words):
+        dictionary = {}
+        for part_of_speech in self.parts_of_speech():
+            dictionary[part_of_speech] = {}
+            for tag in self.tags(part_of_speech):
+                dictionary[part_of_speech][tag] = []
+        for word, tag in tagged_words:
+            part_of_speech = self.part_of_speech(tag)
+            if part_of_speech:
+                dictionary[part_of_speech][tag].append(word)
+
+        return dictionary
+
 # a = TagMapping()
 # b = TagMapping()
 #

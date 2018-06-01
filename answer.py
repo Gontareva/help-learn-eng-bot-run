@@ -1,5 +1,4 @@
 import random
-from soundex import *
 
 
 class Answer(object):
@@ -20,25 +19,26 @@ class Answer(object):
 
 class AnswerWordForm(Answer):
     def create(self, word, dictionary, stemmer):
-        self.answer = random.choice(select_by_value(dictionary, stemmer.stem(word)))
-        return self
+        list_words = dictionary.get(stemmer.stemming(word))
+        if len(list_words) != 0:
+            self.answer = random.choice(list_words)
+            return self
+        return Answer(word)
 
 
 class AnswerHomophone(Answer):
-    def create(self, word, dictionary):
-        self.answer = random.choice(select_by_value(dictionary, Soundex().encode(word)))
-        return self
+    def create(self, word, dictionary, soundex):
+        list_words = dictionary.get(soundex.encode(word))
+        if len(list_words) != 0:
+            self.answer = random.choice(list_words)
+            return self
+        return Answer(word)
 
 
 class AnswerSameTag(Answer):
     def create(self, part_of_speech, tag, dictionary):
         self.answer = random.choice(dictionary.get(part_of_speech.get()).get(tag.get()))
         return self
-
-
-def select_by_value(list, value):
-    return [word for word, attribute in list if attribute == value]
-
 
 # a = type(AnswerHomophone())
 # print(a)
