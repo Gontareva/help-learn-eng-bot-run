@@ -1,4 +1,3 @@
-# import nltk
 map_for_tags = {"NOUN": ["NN", "NNS", "NNS$", "NP", "NP$", "NPS", "NPS$", "NR"],  # существительное
                 "VERB": ["VB", "VBG", "VBN", "VBP", "VBZ", "MD", "HV", "HVD", "HVG", "HVN", "DO", "DOD", "DOZ", "BE",
                          "BED", "BEDZ", "BEG", "BEM", "BEN", "BER", "BEZ"],  # глагол
@@ -11,4 +10,14 @@ map_for_tags = {"NOUN": ["NN", "NNS", "NNS$", "NP", "NP$", "NPS", "NPS$", "NR"],
                 # союзы, предлоги и определители
                 "OTHER": ["UH", "EX", "FW", "TO", "CD"]
                 }
+
+map_for_parts_of_speech = {"NOUN": {"ru": "Существительное", "eng": "Noun"},  # существительное
+                           "VERB": {"ru": "Глагол", "eng": "Verb"},  # глагол
+                           "ADV": {"ru": "Наречие", "eng": "Adverb"},  # наречие
+                           "ADJ": {"ru": "Прилагательное", "eng": "Adjective"},  # прилагательное
+                           "PRON": {"ru": "Местоимение", "eng": "Pronoun"},  # местоимение
+                           "PREP": {"ru": "Предлог", "eng": "Preposition"},  # предлог
+                           "CONJ/DET": {"ru": "Союзы и определители", "eng": "Сonjunctions and determinants"},
+                           # союзы и определители
+                           "OTHER": {"ru": "Другое", "eng": "Other"}}
 # print(nltk.pos_tag(["quite"], tagset='universal'))

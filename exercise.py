@@ -13,6 +13,7 @@ class Exercise(Document):
     user_response = StringField(required=True, min_length=1, default="_____")
     right = BooleanField(required=True, default=False)
     checked = BooleanField(required=True, default=False)
+    closed = BooleanField(required=True, default=False)
 
     def add_user_response(self, response):
         self.user_response = response

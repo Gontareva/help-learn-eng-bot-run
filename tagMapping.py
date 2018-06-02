@@ -16,7 +16,7 @@ class TagMapping(Singleton, object):
 
     def part_of_speech(self, tag):
         for part_of_speech, tags in self.__map.items():
-            if tags.count(tag):
+            if tag in tags:
                 return part_of_speech
         return None
 

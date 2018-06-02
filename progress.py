@@ -1,4 +1,5 @@
 from GChartWrapper import *
+from mapForTags import *
 import sys
 import nltk
 
@@ -52,6 +53,13 @@ if __name__ == '__main__':
     print(nltk.stem.porter.PorterStemmer().stem("book"))
     print(nltk.stem.porter.PorterStemmer().stem("booking"))
 
+    print("4" in(["1","2"]))
+
+    # for part_of_speech in map_for_parts_of_speech_.items():
+    #     print(part_of_speech)
+
+    for a in range(1,4):
+        print(a)
     # print("aaa1")
     # if 10:
     #     print(sys.version)

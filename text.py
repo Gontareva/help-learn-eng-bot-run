@@ -19,7 +19,7 @@ class Text(object):
 
     def __select_by_part_of_speech(self, list, part_of_speech):
         tags = self.__tag_mapping.tags(part_of_speech.get())
-        return [(word, tag) for word, tag in list if tags.count(tag) != 0]
+        return [(word, tag) for word, tag in list if tag in tags]
 
     def words(self):
         return self.__words

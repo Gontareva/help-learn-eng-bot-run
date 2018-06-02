@@ -1,16 +1,17 @@
 import config
 from GChartWrapper import *
 
+
 class ChartGenerator(object):
     def __init__(self, count):
         self.__count = count
         self.__chart = None
 
-    def generate(self, list_of_values, name, chat_id):
+    def generate(self, list_of_values, name, chat_id, level):
         # http://code.google.com/apis/chart/#line_charts
         section = (self.__count, len(list_of_values))[len(list_of_values) < self.__count]
         old_section = section - config.count_for_progress
-        history = list_of_values[-section:]
+        history = [int(value) for value in list_of_values[-section:]]
         g = LineXY([list(range(0, old_section)), list_of_values[:old_section],
                     list(range(old_section - 1, section)), history[old_section - 1:]])
 
@@ -24,7 +25,7 @@ class ChartGenerator(object):
         g.grid(10.0, 10.0, 1, 10)
         g.axes('r')
         g.axes.range(0, min_value, max_value)
-        g.title(name + " rating fot the last 100 exercises")
+        g.title(name + " on " + str(level) + " rating fot the last 100 exercises")
         file = str(chat_id)
         g.save(file)
         return file + ".png"

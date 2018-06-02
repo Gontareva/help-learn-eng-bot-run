@@ -12,8 +12,7 @@ class Soundex(object):
         text = self.normalize(text)
         if not len(text):
             return text
-        builder = []
-        builder.append(text[0])
+        builder = [text[0]]
 
         for ch in text[1:]:
             c = self.__values[ord(ch) - ord('A')]
