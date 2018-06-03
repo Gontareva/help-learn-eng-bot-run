@@ -10,12 +10,11 @@ class Text(object):
         self.__tagged_words = nltk.corpus.brown.tagged_words()
 
     # поиск подходящего предложения
-    def find_sentence(self, parts_of_speech, min_length):
-        sent = []
-        part_of_speech = random.choice(parts_of_speech)
+    def find_sentence(self, part_of_speech, min_length):
+        sent = random.choice(self.__tagged_sents)
         while len(sent) < min_length or not len(self.__select_by_part_of_speech(sent, part_of_speech)):
             sent = random.choice(self.__tagged_sents)
-        return sent, part_of_speech
+        return sent
 
     def __select_by_part_of_speech(self, list, part_of_speech):
         tags = self.__tag_mapping.tags(part_of_speech.get())

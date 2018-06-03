@@ -16,6 +16,10 @@ class Answer(object):
     def get(self):
         return self.answer
 
+    def crete(self, word):
+        self.answer = word
+        return self
+
 
 class AnswerWordForm(Answer):
     def create(self, word, dictionary, stemmer):
@@ -23,7 +27,8 @@ class AnswerWordForm(Answer):
         if len(list_words) != 0:
             self.answer = random.choice(list_words)
             return self
-        return Answer(word)
+        self.answer = word
+        return self
 
 
 class AnswerHomophone(Answer):
@@ -32,7 +37,8 @@ class AnswerHomophone(Answer):
         if len(list_words) != 0:
             self.answer = random.choice(list_words)
             return self
-        return Answer(word)
+        self.answer = word
+        return self
 
 
 class AnswerSameTag(Answer):

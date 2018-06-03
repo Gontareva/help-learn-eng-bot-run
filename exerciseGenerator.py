@@ -33,19 +33,19 @@ class ExerciseGenerator(object):
 
     # генерирование задания
     def generate(self, chat_id, level, list_parts_of_speech):
+        part_of_speech = random.choice(list_parts_of_speech)
         try:
-            list_of_tagged_words, part_of_speech_ = self.__text.find_sentence(list_parts_of_speech, 5)
+            list_of_tagged_words = self.__text.find_sentence(part_of_speech, 5)
         except Exception as e:
             print("generate-- ", e)
-            list_of_tagged_words, part_of_speech_ = self.__text.find_sentence(list_parts_of_speech, 5)
-        part_of_speech = part_of_speech_.get()
-        word, tag = self.__select_word(list_of_tagged_words, part_of_speech_)
+            list_of_tagged_words = self.__text.find_sentence(part_of_speech, 5)
+        word, tag = self.__select_word(list_of_tagged_words, part_of_speech)
         list_of_words = [word for word, _ in list_of_tagged_words]
         sent = " ".join(list_of_words).replace(word, "*_____*", 1)
         count_answers = level * 2 + 2
-        answer_options = self.__create_answer_options(word=word, part_of_speech=part_of_speech_, tag=tag,
+        answer_options = self.__create_answer_options(word=word, part_of_speech=part_of_speech, tag=tag,
                                                       count=count_answers)
-        ex = Exercise(chat_id=chat_id, sentence=sent, answer=word, part_of_speech=part_of_speech, level=level,
+        ex = Exercise(chat_id=chat_id, sentence=sent, answer=word, part_of_speech=part_of_speech.get(), level=level,
                       answer_options=answer_options)
         return ex
 
